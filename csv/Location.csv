@@ -1,0 +1,7 @@
+location_id,location_name,address,suburb,state,postcode,location_type
+1,Mary Wilson Residence,12 Smith Street,Darwin,NT,0800,Client Home
+2,Darwin Community Centre,25 Cavenagh Street,Darwin,NT,0800,Community Centre
+3,Alice Brown Residence,7 Palmerston Circuit,Palmerston,NT,0830,Client Home
+4,Robert Lee Residence,19 Casuarina Drive,Casuarina,NT,0810,Client Home
+5,Darwin Health Precinct,105 Rocklands Drive,Tiwi,NT,0810,Health Facility
+6,Michael Clark Residence,30 Stuart Highway,Stuart Park,NT,0820,Client Home

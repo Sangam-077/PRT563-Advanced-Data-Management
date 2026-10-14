@@ -1,0 +1,6 @@
+service_type_id,service_name,standard_duration,standard_rate,service_status
+1,Personal Care,60,65,Active
+2,Domestic Assistance,90,58,Active
+3,Community Access,120,70,Active
+4,Transport Support,60,55,Active
+5,Respite Support,180,75,Active

@@ -1,0 +1,8 @@
+agreement_id,client_person_id,start_date,end_date,agreement_type,agreement_status,total_budget
+1,1,2026-01-01,2026-12-31,Aged Care Support,Active,18000
+2,2,2026-02-01,2027-01-31,NDIS Support,Active,24000
+3,3,2026-01-15,2026-12-31,NDIS Support,Active,21000
+4,4,2026-03-01,2027-02-28,Aged Care Support,Active,19500
+5,5,2026-01-01,2026-12-31,Community Support,Active,15000
+6,6,2026-04-01,2027-03-31,NDIS Support,Active,27000
+7,7,2026-02-15,2027-02-14,Aged Care Support,Active,17500

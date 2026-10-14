@@ -1,0 +1,9 @@
+person_id,date_of_birth,address,emergency_contact,client_status
+1,1948-05-14,"12 Smith Street, Darwin NT",Helen Wilson - 0411001001,Active
+2,1952-11-22,"45 Mitchell Street, Darwin NT",Sarah Harris - 0411001002,Active
+3,1960-03-08,"7 Palmerston Circuit, Palmerston NT",James Brown - 0411001003,Active
+4,1945-08-17,"19 Casuarina Drive, Casuarina NT",Grace Lee - 0411001004,Active
+5,1958-01-30,"22 Nightcliff Road, Nightcliff NT",Peter Green - 0411001005,Active
+6,1965-06-12,"30 Stuart Highway, Stuart Park NT",Anna Clark - 0411001006,Active
+7,1955-09-25,"15 Rapid Creek Road, Rapid Creek NT",Mark Evans - 0411001007,Active
+8,1949-12-03,"8 Fannie Bay Place, Fannie Bay NT",Jane Turner - 0411001008,Active

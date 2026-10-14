@@ -1,0 +1,9 @@
+care_plan_id,client_person_id,plan_date,review_date,goals,support_needs,plan_status
+1,1,2026-01-05,2026-07-05,Maintain independence at home,Personal care and domestic assistance,Active
+2,2,2026-02-05,2026-08-05,Increase community participation,Community access and transport support,Active
+3,3,2026-01-20,2026-07-20,Improve daily living independence,Personal care and community access,Active
+4,4,2026-03-05,2026-09-05,Remain safely at home,Respite and personal care,Under Review
+5,5,2026-01-08,2026-07-08,Maintain access to essential appointments,Transport and domestic assistance,Active
+6,6,2026-04-05,2026-10-05,Develop independent living skills,Personal care and community participation,Active
+7,7,2026-02-20,2026-08-20,Improve social participation,Community access and domestic assistance,Active
+8,8,2026-08-15,2027-02-15,Assess ongoing support requirements,Initial assessment and care planning,Active

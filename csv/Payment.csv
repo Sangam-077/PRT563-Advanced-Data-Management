@@ -1,0 +1,8 @@
+payment_id,invoice_id,payment_date,payment_amount,payment_method,payment_status,reference_number
+1,1,2026-09-02,152,Bank Transfer,Completed,PAY-2026-001
+2,2,2026-09-05,100,Bank Transfer,Completed,PAY-2026-002
+3,3,2026-09-05,205,Card,Completed,PAY-2026-003
+4,4,2026-09-06,200,Bank Transfer,Completed,PAY-2026-004
+5,5,2026-09-06,110,Card,Completed,PAY-2026-005
+6,6,2026-09-07,65,Bank Transfer,Completed,PAY-2026-006
+7,7,2026-09-07,140,Card,Failed,PAY-2026-007

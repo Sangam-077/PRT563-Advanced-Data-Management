@@ -1,0 +1,14 @@
+worker_qualification_id,worker_person_id,qualification_id,issue_date,expiry_date,status
+1,101,1,2025-06-10,2028-06-10,Current
+2,101,3,2023-12-15,,Current
+3,101,4,2024-02-15,,Current
+4,102,1,2025-08-01,2028-08-01,Current
+5,102,2,2026-01-10,2027-01-10,Current
+6,103,3,2023-05-15,,Current
+7,103,4,2024-01-12,,Current
+8,104,1,2025-03-20,2028-03-20,Current
+9,104,5,2025-04-15,2027-04-15,Current
+10,105,2,2026-02-01,2027-02-01,Current
+11,105,4,2025-01-15,,Current
+12,106,1,2025-09-10,2028-09-10,Current
+13,106,3,2024-07-20,,Current

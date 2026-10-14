@@ -1,0 +1,8 @@
+invoice_id,agreement_id,invoice_date,due_date,invoice_status
+1,1,2026-08-31,2026-09-14,Paid
+2,2,2026-09-02,2026-09-16,Partially Paid
+3,3,2026-09-03,2026-09-17,Paid
+4,4,2026-09-04,2026-09-18,Partially Paid
+5,5,2026-09-05,2026-09-19,Paid
+6,6,2026-09-05,2026-09-19,Paid
+7,7,2026-09-05,2026-09-19,Issued

@@ -1,0 +1,15 @@
+person_id,first_name,last_name,phone,email
+1,Mary,Wilson,0412345001,mary.wilson@example.com
+2,John,Harris,0412345002,john.harris@example.com
+3,Alice,Brown,0412345003,alice.brown@example.com
+4,Robert,Lee,0412345004,robert.lee@example.com
+5,Patricia,Green,0412345005,patricia.green@example.com
+6,Michael,Clark,0412345006,michael.clark@example.com
+7,Susan,Evans,0412345007,susan.evans@example.com
+8,David,Turner,0412345008,david.turner@example.com
+101,Emma,Nguyen,0423456101,emma.nguyen@care.example.com
+102,Liam,Patel,0423456102,liam.patel@care.example.com
+103,Noah,Williams,0423456103,noah.williams@care.example.com
+104,Olivia,Martin,0423456104,olivia.martin@care.example.com
+105,Ethan,Singh,0423456105,ethan.singh@care.example.com
+106,Ava,Thompson,0423456106,ava.thompson@care.example.com

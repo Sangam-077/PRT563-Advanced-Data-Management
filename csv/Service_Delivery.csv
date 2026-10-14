@@ -1,0 +1,13 @@
+delivery_id,booking_id,actual_start,actual_end,units_delivered,delivery_status,delivery_outcome
+1,1,2026-08-20 09:03:00,2026-08-20 10:00:00,1,Completed,Personal care completed successfully
+2,2,2026-08-22 10:05:00,2026-08-22 11:32:00,1.5,Completed,Domestic assistance completed
+3,3,2026-08-21 13:00:00,2026-08-21 15:00:00,2,Completed,Client participated in community activity
+4,4,2026-08-24 08:00:00,2026-08-24 09:00:00,1,Completed,Morning personal care completed
+5,5,2026-08-25 09:05:00,2026-08-25 12:00:00,3,Completed,Respite support completed
+6,6,2026-08-26 10:00:00,2026-08-26 11:00:00,1,Completed,Transport to health appointment completed
+7,7,2026-08-27 14:02:00,2026-08-27 15:00:00,1,Completed,Personal care completed
+8,8,2026-08-28 09:00:00,2026-08-28 11:00:00,2,Completed,Community access activity completed
+9,9,2026-09-01 11:05:00,2026-09-01 12:30:00,1.5,Completed,Domestic assistance completed
+10,10,2026-09-02 13:00:00,2026-09-02 15:00:00,2,Completed,Community participation goals addressed
+11,11,2026-09-03 09:00:00,2026-09-03 11:45:00,3,Partially Completed,Session ended early at client request
+12,12,2026-09-04 10:00:00,2026-09-04 11:00:00,1,Completed,Transport service completed

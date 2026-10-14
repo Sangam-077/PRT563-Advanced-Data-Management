@@ -1,0 +1,13 @@
+note_id,delivery_id,author_worker_person_id,note_date_time,note_text
+1,1,101,2026-08-20 10:10:00,Client was comfortable and participated in personal care activities.
+2,2,102,2026-08-22 11:40:00,Cleaning and meal preparation tasks completed.
+3,3,103,2026-08-21 15:10:00,Client engaged positively in community activities.
+4,4,101,2026-08-24 09:10:00,Morning routine completed without concerns.
+5,5,104,2026-08-25 12:10:00,Respite session completed. Client remained settled.
+6,6,105,2026-08-26 11:10:00,Client transported safely to and from appointment.
+7,7,101,2026-08-27 15:10:00,Personal care goals achieved during session.
+8,8,106,2026-08-28 11:10:00,Client participated well in scheduled community activity.
+9,9,102,2026-09-01 12:40:00,Domestic tasks completed as specified in support plan.
+10,10,103,2026-09-02 15:10:00,Client showed increased confidence during community activity.
+11,11,104,2026-09-03 12:00:00,Respite session shortened following client request.
+12,12,105,2026-09-04 11:10:00,Transport support completed with no major concerns.
