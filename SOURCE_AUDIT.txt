@@ -1,0 +1,50 @@
+OFFLINE AUDIT — PRT563 Member 2
+Source: original Assessment 2 SQLite file in group ZIP
+Method: compare each source row and every CSV row as unordered dictionaries with exact string values
+
+Source tables: 18
+Source rows: 152
+Foreign-key definitions: 21
+Non-null foreign-key references: 215
+Foreign-key violations: 0
+Projected graph nodes (source records minus Client, Support_Worker, Worker_Qualification rows): 125
+Projected graph relationships (all FK references except Client/Support_Worker subtype edges): 188
+
+CSV exact-match checks:
+  Person: SQLite=14, CSV=14, PASS
+  Client: SQLite=8, CSV=8, PASS
+  Support_Worker: SQLite=6, CSV=6, PASS
+  Service_Agreement: SQLite=7, CSV=7, PASS
+  Care_Plan: SQLite=8, CSV=8, PASS
+  Qualification: SQLite=5, CSV=5, PASS
+  Worker_Qualification: SQLite=13, CSV=13, PASS
+  Service_Type: SQLite=5, CSV=5, PASS
+  Location: SQLite=6, CSV=6, PASS
+  Service_Booking: SQLite=16, CSV=16, PASS
+  Service_Delivery: SQLite=12, CSV=12, PASS
+  Progress_Note: SQLite=12, CSV=12, PASS
+  Incident_Report: SQLite=4, CSV=4, PASS
+  Funding_Body: SQLite=3, CSV=3, PASS
+  Funding_Allocation: SQLite=7, CSV=7, PASS
+  Invoice: SQLite=7, CSV=7, PASS
+  Invoice_Line: SQLite=12, CSV=12, PASS
+  Payment: SQLite=7, CSV=7, PASS
+
+Expected workload query results (SQLite reference):
+  101 | Emma Nguyen | 4
+  102 | Liam Patel | 3
+  103 | Noah Williams | 3
+  106 | Ava Thompson | 2
+  105 | Ethan Singh | 2
+  104 | Olivia Martin | 2
+
+Expected invoice reconciliation (SQLite reference):
+  invoice 4: billed=450, paid=200, outstanding=250.00
+  invoice 7: billed=140, paid=0, outstanding=140.00
+  invoice 2: billed=227, paid=100, outstanding=127.00
+  invoice 1: billed=152, paid=152, outstanding=0.00
+  invoice 3: billed=205, paid=205, outstanding=0.00
+  invoice 5: billed=110, paid=110, outstanding=0.00
+  invoice 6: billed=65, paid=65, outstanding=0.00
+
+IMPORTANT: Local Neo4j clean rebuild not executed in this environment. User must run on a separate EMPTY Neo4j database and preserve output. Static/data audit does not prove Cypher execution succeeds.

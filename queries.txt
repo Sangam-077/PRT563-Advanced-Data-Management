@@ -1,0 +1,47 @@
+// PRT563 Assessment 4 — Member 2 — four industry-relevant Cypher query use cases
+// Run against the imported graph. Capture REAL results in the report.
+
+// QUERY 1 — Worker workload distribution (aggregation + OPTIONAL MATCH)
+// Business use: compare assignment volumes to flag possible workload imbalance.
+MATCH (w:Support_Worker)
+OPTIONAL MATCH (w)-[:ASSIGNED_TO]->(b:Service_Booking)
+RETURN w.person_id AS WorkerID, w.first_name + ' ' + w.last_name AS WorkerName,
+       w.employment_status AS EmploymentType, count(b) AS AssignedBookings
+ORDER BY AssignedBookings DESC, WorkerName;
+
+// QUERY 2 — Client care journey: appointments and actual service delivery
+// Business use: see whether scheduled visits translated into recorded delivery.
+MATCH (c:Client)-[:HAS_AGREEMENT]->(a:Service_Agreement)-[:HAS_BOOKING]->(b:Service_Booking)
+MATCH (w:Support_Worker)-[:ASSIGNED_TO]->(b)
+MATCH (b)-[:FOR_SERVICE]->(s:Service_Type)
+OPTIONAL MATCH (b)-[:HAS_DELIVERY]->(d:Service_Delivery)
+RETURN c.first_name + ' ' + c.last_name AS Client, b.booking_id AS BookingID,
+       s.service_name AS Service, w.first_name + ' ' + w.last_name AS Worker,
+       b.scheduled_start AS ScheduledStart, b.booking_status AS BookingStatus,
+       coalesce(d.delivery_status, 'Not recorded') AS DeliveryStatus
+ORDER BY Client, ScheduledStart;
+
+// QUERY 3 — Invoice reconciliation with isolated subqueries to prevent multiplicative joins
+// Business use: identify overdue/partially paid or outstanding invoices.
+MATCH (i:Invoice)
+CALL (i) { OPTIONAL MATCH (i)-[:HAS_LINE]->(il:Invoice_Line)
+  RETURN coalesce(sum(il.billed_amount),0.0) AS BilledAmount }
+CALL (i) { OPTIONAL MATCH (i)-[:HAS_PAYMENT]->(p:Payment)
+  WHERE p.payment_status = 'Completed'
+  RETURN coalesce(sum(p.payment_amount),0.0) AS PaidAmount }
+RETURN i.invoice_id AS InvoiceID, i.invoice_status AS InvoiceStatus,
+       i.due_date AS DueDate, BilledAmount, PaidAmount,
+       BilledAmount-PaidAmount AS OutstandingBalance
+ORDER BY OutstandingBalance DESC, InvoiceID;
+
+// QUERY 4 — Qualification-aware staffing and service delivery risk
+// Business use: assess workforce credentials for current booking assignments.
+MATCH (w:Support_Worker)-[:ASSIGNED_TO]->(b:Service_Booking)-[:FOR_SERVICE]->(s:Service_Type)
+OPTIONAL MATCH (w)-[hq:HOLDS_QUALIFICATION]->(q:Qualification)
+WITH w,s,count(DISTINCT b) AS BookingCount,
+     count(DISTINCT q) AS QualificationCount,
+     count(DISTINCT CASE WHEN hq.expiry_date < date() THEN q END) AS ExpiredQualifications
+RETURN w.person_id AS WorkerID, w.first_name + ' ' + w.last_name AS Worker,
+       s.service_name AS Service, BookingCount, QualificationCount, ExpiredQualifications
+ORDER BY ExpiredQualifications DESC, BookingCount DESC, Worker;
+// Note: this is a credential review, not proof of eligibility for any specific service.

@@ -1,0 +1,35 @@
+// PRT563 Task 2 additional validation (run each statement separately)
+// Counts and orphan audits complement screenshots; expected zero missing links.
+MATCH (n) WITH count(n) AS nodes MATCH ()-[r]->() RETURN nodes, count(r) AS relationships;
+
+MATCH (b:Service_Booking)
+OPTIONAL MATCH (:Service_Agreement)-[a:HAS_BOOKING]->(b)
+OPTIONAL MATCH (:Support_Worker)-[w:ASSIGNED_TO]->(b)
+OPTIONAL MATCH (b)-[s:FOR_SERVICE]->(:Service_Type)
+OPTIONAL MATCH (b)-[l:AT_LOCATION]->(:Location)
+RETURN count(DISTINCT b) AS bookings,
+       count(DISTINCT CASE WHEN a IS NULL THEN b END) AS missingAgreement,
+       count(DISTINCT CASE WHEN w IS NULL THEN b END) AS missingWorker,
+       count(DISTINCT CASE WHEN s IS NULL THEN b END) AS missingServiceType,
+       count(DISTINCT CASE WHEN l IS NULL THEN b END) AS missingLocation;
+
+MATCH (d:Service_Delivery)
+OPTIONAL MATCH (:Service_Booking)-[r:HAS_DELIVERY]->(d)
+RETURN count(DISTINCT d) AS deliveries, count(DISTINCT CASE WHEN r IS NULL THEN d END) AS unlinked;
+
+MATCH (il:Invoice_Line)
+OPTIONAL MATCH (:Invoice)-[r1:HAS_LINE]->(il)
+OPTIONAL MATCH (il)-[r2:BILLS_DELIVERY]->(:Service_Delivery)
+RETURN count(DISTINCT il) AS invoiceLines,
+ count(DISTINCT CASE WHEN r1 IS NULL THEN il END) AS missingInvoice,
+ count(DISTINCT CASE WHEN r2 IS NULL THEN il END) AS missingDelivery;
+
+MATCH (n)
+UNWIND labels(n) AS label
+RETURN label, count(*) AS count ORDER BY label;
+
+MATCH ()-[r]->()
+RETURN type(r) AS relationshipType,count(*) AS count ORDER BY relationshipType;
+
+SHOW INDEXES YIELD name,type,labelsOrTypes,properties
+RETURN name,type,labelsOrTypes,properties ORDER BY name;

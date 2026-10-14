@@ -1,0 +1,463 @@
+// PRT563 Assessment 4 — Member 2 | Neo4j Desktop 2026.09 | REPRODUCIBLE IMPORT
+
+
+// Source: 18 CSV files from original Assessment 2 SQLite DB. Run against an EMPTY neo4j database.
+
+
+// Copy ALL csv/*.csv files into the local instance import folder. Run statements IN ORDER, one at a time.
+
+
+// Optimised graph: Person + Client/Support_Worker as multiple labels; Worker_Qualification as a relationship.
+
+
+// Do not also run the older Aura starter import.txt: it models the same database differently.
+
+
+// IMPORTANT: inspect or anonymise records before any public repository upload.
+
+
+// Expected 125 distinct nodes, 188 relationships after full import.
+
+
+CREATE CONSTRAINT client_person_id_unique IF NOT EXISTS FOR (n:`Client`) REQUIRE n.`person_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT support_worker_person_id_unique IF NOT EXISTS FOR (n:`Support_Worker`) REQUIRE n.`person_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT person_person_id_unique IF NOT EXISTS FOR (n:`Person`) REQUIRE n.`person_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT care_plan_care_plan_id_unique IF NOT EXISTS FOR (n:`Care_Plan`) REQUIRE n.`care_plan_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT service_agreement_agreement_id_unique IF NOT EXISTS FOR (n:`Service_Agreement`) REQUIRE n.`agreement_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT service_booking_booking_id_unique IF NOT EXISTS FOR (n:`Service_Booking`) REQUIRE n.`booking_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT service_delivery_delivery_id_unique IF NOT EXISTS FOR (n:`Service_Delivery`) REQUIRE n.`delivery_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT service_type_service_type_id_unique IF NOT EXISTS FOR (n:`Service_Type`) REQUIRE n.`service_type_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT location_location_id_unique IF NOT EXISTS FOR (n:`Location`) REQUIRE n.`location_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT qualification_qualification_id_unique IF NOT EXISTS FOR (n:`Qualification`) REQUIRE n.`qualification_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT funding_body_funding_body_id_unique IF NOT EXISTS FOR (n:`Funding_Body`) REQUIRE n.`funding_body_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT funding_allocation_allocation_id_unique IF NOT EXISTS FOR (n:`Funding_Allocation`) REQUIRE n.`allocation_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT invoice_invoice_id_unique IF NOT EXISTS FOR (n:`Invoice`) REQUIRE n.`invoice_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT invoice_line_invoice_line_id_unique IF NOT EXISTS FOR (n:`Invoice_Line`) REQUIRE n.`invoice_line_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT payment_payment_id_unique IF NOT EXISTS FOR (n:`Payment`) REQUIRE n.`payment_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT progress_note_note_id_unique IF NOT EXISTS FOR (n:`Progress_Note`) REQUIRE n.`note_id` IS UNIQUE;
+
+
+CREATE CONSTRAINT incident_report_incident_id_unique IF NOT EXISTS FOR (n:`Incident_Report`) REQUIRE n.`incident_id` IS UNIQUE;
+
+
+// Additional explicit RANGE indexes for useful secondary queries; uniqueness constraints already provide key indexes.
+
+
+CREATE RANGE INDEX booking_status_index IF NOT EXISTS FOR (n:Service_Booking) ON (n.booking_status);
+
+
+CREATE RANGE INDEX invoice_status_index IF NOT EXISTS FOR (n:Invoice) ON (n.invoice_status);
+
+
+CREATE RANGE INDEX qualification_name_index IF NOT EXISTS FOR (n:Qualification) ON (n.qualification_name);
+
+
+// NODE IMPORT: Person — 14 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Person.csv' AS row
+WITH row WHERE trim(coalesce(row.`person_id`, '')) <> ''
+MERGE (n:`Person` {`person_id`: toInteger(row.`person_id`)})
+SET n.`first_name` = CASE WHEN trim(coalesce(row.`first_name`, '')) <> '' THEN row.`first_name` ELSE null END,
+    n.`last_name` = CASE WHEN trim(coalesce(row.`last_name`, '')) <> '' THEN row.`last_name` ELSE null END,
+    n.`phone` = CASE WHEN trim(coalesce(row.`phone`, '')) <> '' THEN row.`phone` ELSE null END,
+    n.`email` = CASE WHEN trim(coalesce(row.`email`, '')) <> '' THEN row.`email` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// APPLY SUBTYPE LABEL: Client — 8 persons
+LOAD CSV WITH HEADERS FROM 'file:///Client.csv' AS row
+MATCH (p:Person {person_id: toInteger(row.person_id)})
+SET p:`Client`,
+    p.`date_of_birth` = CASE WHEN trim(coalesce(row.`date_of_birth`, '')) <> '' THEN date(row.`date_of_birth`) ELSE null END,
+    p.`address` = CASE WHEN trim(coalesce(row.`address`, '')) <> '' THEN row.`address` ELSE null END,
+    p.`emergency_contact` = CASE WHEN trim(coalesce(row.`emergency_contact`, '')) <> '' THEN row.`emergency_contact` ELSE null END,
+    p.`client_status` = CASE WHEN trim(coalesce(row.`client_status`, '')) <> '' THEN row.`client_status` ELSE null END
+RETURN count(p) AS RowsProcessed;
+
+
+// APPLY SUBTYPE LABEL: Support_Worker — 6 persons
+LOAD CSV WITH HEADERS FROM 'file:///Support_Worker.csv' AS row
+MATCH (p:Person {person_id: toInteger(row.person_id)})
+SET p:`Support_Worker`,
+    p.`employment_status` = CASE WHEN trim(coalesce(row.`employment_status`, '')) <> '' THEN row.`employment_status` ELSE null END,
+    p.`hire_date` = CASE WHEN trim(coalesce(row.`hire_date`, '')) <> '' THEN date(row.`hire_date`) ELSE null END,
+    p.`worker_status` = CASE WHEN trim(coalesce(row.`status`, '')) <> '' THEN row.`status` ELSE null END
+RETURN count(p) AS RowsProcessed;
+
+
+// NODE IMPORT: Care_Plan — 8 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Care_Plan.csv' AS row
+WITH row WHERE trim(coalesce(row.`care_plan_id`, '')) <> ''
+MERGE (n:`Care_Plan` {`care_plan_id`: toInteger(row.`care_plan_id`)})
+SET n.`plan_date` = CASE WHEN trim(coalesce(row.`plan_date`, '')) <> '' THEN date(row.`plan_date`) ELSE null END,
+    n.`review_date` = CASE WHEN trim(coalesce(row.`review_date`, '')) <> '' THEN date(row.`review_date`) ELSE null END,
+    n.`goals` = CASE WHEN trim(coalesce(row.`goals`, '')) <> '' THEN row.`goals` ELSE null END,
+    n.`support_needs` = CASE WHEN trim(coalesce(row.`support_needs`, '')) <> '' THEN row.`support_needs` ELSE null END,
+    n.`plan_status` = CASE WHEN trim(coalesce(row.`plan_status`, '')) <> '' THEN row.`plan_status` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Service_Agreement — 7 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Service_Agreement.csv' AS row
+WITH row WHERE trim(coalesce(row.`agreement_id`, '')) <> ''
+MERGE (n:`Service_Agreement` {`agreement_id`: toInteger(row.`agreement_id`)})
+SET n.`start_date` = CASE WHEN trim(coalesce(row.`start_date`, '')) <> '' THEN date(row.`start_date`) ELSE null END,
+    n.`end_date` = CASE WHEN trim(coalesce(row.`end_date`, '')) <> '' THEN date(row.`end_date`) ELSE null END,
+    n.`agreement_type` = CASE WHEN trim(coalesce(row.`agreement_type`, '')) <> '' THEN row.`agreement_type` ELSE null END,
+    n.`agreement_status` = CASE WHEN trim(coalesce(row.`agreement_status`, '')) <> '' THEN row.`agreement_status` ELSE null END,
+    n.`total_budget` = CASE WHEN trim(coalesce(row.`total_budget`, '')) <> '' THEN toFloat(row.`total_budget`) ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Service_Booking — 16 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Service_Booking.csv' AS row
+WITH row WHERE trim(coalesce(row.`booking_id`, '')) <> ''
+MERGE (n:`Service_Booking` {`booking_id`: toInteger(row.`booking_id`)})
+SET n.`scheduled_start` = CASE WHEN trim(coalesce(row.`scheduled_start`, '')) <> '' THEN localdatetime(replace(row.`scheduled_start`, ' ', 'T')) ELSE null END,
+    n.`scheduled_end` = CASE WHEN trim(coalesce(row.`scheduled_end`, '')) <> '' THEN localdatetime(replace(row.`scheduled_end`, ' ', 'T')) ELSE null END,
+    n.`booking_status` = CASE WHEN trim(coalesce(row.`booking_status`, '')) <> '' THEN row.`booking_status` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Service_Delivery — 12 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Service_Delivery.csv' AS row
+WITH row WHERE trim(coalesce(row.`delivery_id`, '')) <> ''
+MERGE (n:`Service_Delivery` {`delivery_id`: toInteger(row.`delivery_id`)})
+SET n.`actual_start` = CASE WHEN trim(coalesce(row.`actual_start`, '')) <> '' THEN localdatetime(replace(row.`actual_start`, ' ', 'T')) ELSE null END,
+    n.`actual_end` = CASE WHEN trim(coalesce(row.`actual_end`, '')) <> '' THEN localdatetime(replace(row.`actual_end`, ' ', 'T')) ELSE null END,
+    n.`units_delivered` = CASE WHEN trim(coalesce(row.`units_delivered`, '')) <> '' THEN toFloat(row.`units_delivered`) ELSE null END,
+    n.`delivery_status` = CASE WHEN trim(coalesce(row.`delivery_status`, '')) <> '' THEN row.`delivery_status` ELSE null END,
+    n.`delivery_outcome` = CASE WHEN trim(coalesce(row.`delivery_outcome`, '')) <> '' THEN row.`delivery_outcome` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Service_Type — 5 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Service_Type.csv' AS row
+WITH row WHERE trim(coalesce(row.`service_type_id`, '')) <> ''
+MERGE (n:`Service_Type` {`service_type_id`: toInteger(row.`service_type_id`)})
+SET n.`service_name` = CASE WHEN trim(coalesce(row.`service_name`, '')) <> '' THEN row.`service_name` ELSE null END,
+    n.`standard_duration` = CASE WHEN trim(coalesce(row.`standard_duration`, '')) <> '' THEN toInteger(row.`standard_duration`) ELSE null END,
+    n.`standard_rate` = CASE WHEN trim(coalesce(row.`standard_rate`, '')) <> '' THEN toFloat(row.`standard_rate`) ELSE null END,
+    n.`service_status` = CASE WHEN trim(coalesce(row.`service_status`, '')) <> '' THEN row.`service_status` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Location — 6 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Location.csv' AS row
+WITH row WHERE trim(coalesce(row.`location_id`, '')) <> ''
+MERGE (n:`Location` {`location_id`: toInteger(row.`location_id`)})
+SET n.`location_name` = CASE WHEN trim(coalesce(row.`location_name`, '')) <> '' THEN row.`location_name` ELSE null END,
+    n.`address` = CASE WHEN trim(coalesce(row.`address`, '')) <> '' THEN row.`address` ELSE null END,
+    n.`suburb` = CASE WHEN trim(coalesce(row.`suburb`, '')) <> '' THEN row.`suburb` ELSE null END,
+    n.`state` = CASE WHEN trim(coalesce(row.`state`, '')) <> '' THEN row.`state` ELSE null END,
+    n.`postcode` = CASE WHEN trim(coalesce(row.`postcode`, '')) <> '' THEN row.`postcode` ELSE null END,
+    n.`location_type` = CASE WHEN trim(coalesce(row.`location_type`, '')) <> '' THEN row.`location_type` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Qualification — 5 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Qualification.csv' AS row
+WITH row WHERE trim(coalesce(row.`qualification_id`, '')) <> ''
+MERGE (n:`Qualification` {`qualification_id`: toInteger(row.`qualification_id`)})
+SET n.`qualification_name` = CASE WHEN trim(coalesce(row.`qualification_name`, '')) <> '' THEN row.`qualification_name` ELSE null END,
+    n.`issuing_organisation` = CASE WHEN trim(coalesce(row.`issuing_organisation`, '')) <> '' THEN row.`issuing_organisation` ELSE null END,
+    n.`description` = CASE WHEN trim(coalesce(row.`description`, '')) <> '' THEN row.`description` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Funding_Body — 3 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Funding_Body.csv' AS row
+WITH row WHERE trim(coalesce(row.`funding_body_id`, '')) <> ''
+MERGE (n:`Funding_Body` {`funding_body_id`: toInteger(row.`funding_body_id`)})
+SET n.`funding_body_name` = CASE WHEN trim(coalesce(row.`funding_body_name`, '')) <> '' THEN row.`funding_body_name` ELSE null END,
+    n.`contact_name` = CASE WHEN trim(coalesce(row.`contact_name`, '')) <> '' THEN row.`contact_name` ELSE null END,
+    n.`phone` = CASE WHEN trim(coalesce(row.`phone`, '')) <> '' THEN row.`phone` ELSE null END,
+    n.`email` = CASE WHEN trim(coalesce(row.`email`, '')) <> '' THEN row.`email` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Funding_Allocation — 7 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Funding_Allocation.csv' AS row
+WITH row WHERE trim(coalesce(row.`allocation_id`, '')) <> ''
+MERGE (n:`Funding_Allocation` {`allocation_id`: toInteger(row.`allocation_id`)})
+SET n.`allocation_amount` = CASE WHEN trim(coalesce(row.`allocation_amount`, '')) <> '' THEN toFloat(row.`allocation_amount`) ELSE null END,
+    n.`amount_used` = CASE WHEN trim(coalesce(row.`amount_used`, '')) <> '' THEN toFloat(row.`amount_used`) ELSE null END,
+    n.`start_date` = CASE WHEN trim(coalesce(row.`start_date`, '')) <> '' THEN date(row.`start_date`) ELSE null END,
+    n.`end_date` = CASE WHEN trim(coalesce(row.`end_date`, '')) <> '' THEN date(row.`end_date`) ELSE null END,
+    n.`allocation_status` = CASE WHEN trim(coalesce(row.`allocation_status`, '')) <> '' THEN row.`allocation_status` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Invoice — 7 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Invoice.csv' AS row
+WITH row WHERE trim(coalesce(row.`invoice_id`, '')) <> ''
+MERGE (n:`Invoice` {`invoice_id`: toInteger(row.`invoice_id`)})
+SET n.`invoice_date` = CASE WHEN trim(coalesce(row.`invoice_date`, '')) <> '' THEN date(row.`invoice_date`) ELSE null END,
+    n.`due_date` = CASE WHEN trim(coalesce(row.`due_date`, '')) <> '' THEN date(row.`due_date`) ELSE null END,
+    n.`invoice_status` = CASE WHEN trim(coalesce(row.`invoice_status`, '')) <> '' THEN row.`invoice_status` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Invoice_Line — 12 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Invoice_Line.csv' AS row
+WITH row WHERE trim(coalesce(row.`invoice_line_id`, '')) <> ''
+MERGE (n:`Invoice_Line` {`invoice_line_id`: toInteger(row.`invoice_line_id`)})
+SET n.`billed_amount` = CASE WHEN trim(coalesce(row.`billed_amount`, '')) <> '' THEN toFloat(row.`billed_amount`) ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Payment — 7 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Payment.csv' AS row
+WITH row WHERE trim(coalesce(row.`payment_id`, '')) <> ''
+MERGE (n:`Payment` {`payment_id`: toInteger(row.`payment_id`)})
+SET n.`payment_date` = CASE WHEN trim(coalesce(row.`payment_date`, '')) <> '' THEN date(row.`payment_date`) ELSE null END,
+    n.`payment_amount` = CASE WHEN trim(coalesce(row.`payment_amount`, '')) <> '' THEN toFloat(row.`payment_amount`) ELSE null END,
+    n.`payment_method` = CASE WHEN trim(coalesce(row.`payment_method`, '')) <> '' THEN row.`payment_method` ELSE null END,
+    n.`payment_status` = CASE WHEN trim(coalesce(row.`payment_status`, '')) <> '' THEN row.`payment_status` ELSE null END,
+    n.`reference_number` = CASE WHEN trim(coalesce(row.`reference_number`, '')) <> '' THEN row.`reference_number` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Progress_Note — 12 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Progress_Note.csv' AS row
+WITH row WHERE trim(coalesce(row.`note_id`, '')) <> ''
+MERGE (n:`Progress_Note` {`note_id`: toInteger(row.`note_id`)})
+SET n.`note_date_time` = CASE WHEN trim(coalesce(row.`note_date_time`, '')) <> '' THEN localdatetime(replace(row.`note_date_time`, ' ', 'T')) ELSE null END,
+    n.`note_text` = CASE WHEN trim(coalesce(row.`note_text`, '')) <> '' THEN row.`note_text` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// NODE IMPORT: Incident_Report — 4 records
+
+
+LOAD CSV WITH HEADERS FROM 'file:///Incident_Report.csv' AS row
+WITH row WHERE trim(coalesce(row.`incident_id`, '')) <> ''
+MERGE (n:`Incident_Report` {`incident_id`: toInteger(row.`incident_id`)})
+SET n.`incident_date_time` = CASE WHEN trim(coalesce(row.`incident_date_time`, '')) <> '' THEN localdatetime(replace(row.`incident_date_time`, ' ', 'T')) ELSE null END,
+    n.`incident_type` = CASE WHEN trim(coalesce(row.`incident_type`, '')) <> '' THEN row.`incident_type` ELSE null END,
+    n.`severity` = CASE WHEN trim(coalesce(row.`severity`, '')) <> '' THEN row.`severity` ELSE null END,
+    n.`description` = CASE WHEN trim(coalesce(row.`description`, '')) <> '' THEN row.`description` ELSE null END,
+    n.`action_taken` = CASE WHEN trim(coalesce(row.`action_taken`, '')) <> '' THEN row.`action_taken` ELSE null END,
+    n.`incident_status` = CASE WHEN trim(coalesce(row.`incident_status`, '')) <> '' THEN row.`incident_status` ELSE null END
+RETURN count(n) AS RowsProcessed;
+
+
+// RELATIONSHIP: HAS_CARE_PLAN — up to 8 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Care_Plan.csv' AS row
+MATCH (a:`Client` {`person_id`: toInteger(row.`client_person_id`)})
+MATCH (b:`Care_Plan` {`care_plan_id`: toInteger(row.`care_plan_id`)})
+MERGE (a)-[:`HAS_CARE_PLAN`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: HAS_AGREEMENT — up to 7 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Service_Agreement.csv' AS row
+MATCH (a:`Client` {`person_id`: toInteger(row.`client_person_id`)})
+MATCH (b:`Service_Agreement` {`agreement_id`: toInteger(row.`agreement_id`)})
+MERGE (a)-[:`HAS_AGREEMENT`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: HAS_BOOKING — up to 16 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Service_Booking.csv' AS row
+MATCH (a:`Service_Agreement` {`agreement_id`: toInteger(row.`agreement_id`)})
+MATCH (b:`Service_Booking` {`booking_id`: toInteger(row.`booking_id`)})
+MERGE (a)-[:`HAS_BOOKING`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: ASSIGNED_TO — up to 16 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Service_Booking.csv' AS row
+MATCH (a:`Support_Worker` {`person_id`: toInteger(row.`worker_person_id`)})
+MATCH (b:`Service_Booking` {`booking_id`: toInteger(row.`booking_id`)})
+MERGE (a)-[:`ASSIGNED_TO`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: FOR_SERVICE — up to 16 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Service_Booking.csv' AS row
+MATCH (a:`Service_Booking` {`booking_id`: toInteger(row.`booking_id`)})
+MATCH (b:`Service_Type` {`service_type_id`: toInteger(row.`service_type_id`)})
+MERGE (a)-[:`FOR_SERVICE`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: AT_LOCATION — up to 16 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Service_Booking.csv' AS row
+MATCH (a:`Service_Booking` {`booking_id`: toInteger(row.`booking_id`)})
+MATCH (b:`Location` {`location_id`: toInteger(row.`location_id`)})
+MERGE (a)-[:`AT_LOCATION`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: HAS_DELIVERY — up to 12 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Service_Delivery.csv' AS row
+MATCH (a:`Service_Booking` {`booking_id`: toInteger(row.`booking_id`)})
+MATCH (b:`Service_Delivery` {`delivery_id`: toInteger(row.`delivery_id`)})
+MERGE (a)-[:`HAS_DELIVERY`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: PROVIDES_FUNDING — up to 7 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Funding_Allocation.csv' AS row
+MATCH (a:`Funding_Body` {`funding_body_id`: toInteger(row.`funding_body_id`)})
+MATCH (b:`Funding_Allocation` {`allocation_id`: toInteger(row.`allocation_id`)})
+MERGE (a)-[:`PROVIDES_FUNDING`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: FUNDS_AGREEMENT — up to 7 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Funding_Allocation.csv' AS row
+MATCH (a:`Funding_Allocation` {`allocation_id`: toInteger(row.`allocation_id`)})
+MATCH (b:`Service_Agreement` {`agreement_id`: toInteger(row.`agreement_id`)})
+MERGE (a)-[:`FUNDS_AGREEMENT`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: HAS_INVOICE — up to 7 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Invoice.csv' AS row
+MATCH (a:`Service_Agreement` {`agreement_id`: toInteger(row.`agreement_id`)})
+MATCH (b:`Invoice` {`invoice_id`: toInteger(row.`invoice_id`)})
+MERGE (a)-[:`HAS_INVOICE`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: HAS_LINE — up to 12 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Invoice_Line.csv' AS row
+MATCH (a:`Invoice` {`invoice_id`: toInteger(row.`invoice_id`)})
+MATCH (b:`Invoice_Line` {`invoice_line_id`: toInteger(row.`invoice_line_id`)})
+MERGE (a)-[:`HAS_LINE`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: BILLS_DELIVERY — up to 12 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Invoice_Line.csv' AS row
+MATCH (a:`Invoice_Line` {`invoice_line_id`: toInteger(row.`invoice_line_id`)})
+MATCH (b:`Service_Delivery` {`delivery_id`: toInteger(row.`delivery_id`)})
+MERGE (a)-[:`BILLS_DELIVERY`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: HAS_PAYMENT — up to 7 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Payment.csv' AS row
+MATCH (a:`Invoice` {`invoice_id`: toInteger(row.`invoice_id`)})
+MATCH (b:`Payment` {`payment_id`: toInteger(row.`payment_id`)})
+MERGE (a)-[:`HAS_PAYMENT`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: HAS_PROGRESS_NOTE — up to 12 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Progress_Note.csv' AS row
+MATCH (a:`Service_Delivery` {`delivery_id`: toInteger(row.`delivery_id`)})
+MATCH (b:`Progress_Note` {`note_id`: toInteger(row.`note_id`)})
+MERGE (a)-[:`HAS_PROGRESS_NOTE`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: AUTHORED_NOTE — up to 12 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Progress_Note.csv' AS row
+MATCH (a:`Support_Worker` {`person_id`: toInteger(row.`author_worker_person_id`)})
+MATCH (b:`Progress_Note` {`note_id`: toInteger(row.`note_id`)})
+MERGE (a)-[:`AUTHORED_NOTE`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: HAS_INCIDENT — up to 4 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Incident_Report.csv' AS row
+MATCH (a:`Service_Delivery` {`delivery_id`: toInteger(row.`delivery_id`)})
+MATCH (b:`Incident_Report` {`incident_id`: toInteger(row.`incident_id`)})
+MERGE (a)-[:`HAS_INCIDENT`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: REPORTED_INCIDENT — up to 4 CSV records
+LOAD CSV WITH HEADERS FROM 'file:///Incident_Report.csv' AS row
+MATCH (a:`Support_Worker` {`person_id`: toInteger(row.`reported_by_worker_person_id`)})
+MATCH (b:`Incident_Report` {`incident_id`: toInteger(row.`incident_id`)})
+MERGE (a)-[:`REPORTED_INCIDENT`]->(b)
+RETURN count(*) AS MatchedSourceRows;
+
+
+// RELATIONSHIP: Worker_Qualification associative table becomes a relationship with original ID and attributes
+LOAD CSV WITH HEADERS FROM 'file:///Worker_Qualification.csv' AS row
+MATCH (w:Support_Worker {person_id: toInteger(row.worker_person_id)})
+MATCH (q:Qualification {qualification_id: toInteger(row.qualification_id)})
+MERGE (w)-[r:HOLDS_QUALIFICATION {worker_qualification_id: toInteger(row.worker_qualification_id)}]->(q)
+SET r.issue_date = CASE WHEN trim(coalesce(row.`issue_date`, '')) <> '' THEN date(row.`issue_date`) ELSE null END,
+    r.expiry_date = CASE WHEN trim(coalesce(row.`expiry_date`, '')) <> '' THEN date(row.`expiry_date`) ELSE null END,
+    r.status = CASE WHEN trim(coalesce(row.`status`, '')) <> '' THEN row.`status` ELSE null END
+RETURN count(r) AS MatchedSourceRows;
+
+
+// AUDIT TOTALS: expected 125 nodes and 188 relationships
+MATCH (n) WITH count(n) AS Nodes MATCH ()-[r]->() RETURN Nodes, count(r) AS Relationships;
+
+
+// AUDIT BY LABEL
+MATCH (n) UNWIND labels(n) AS label RETURN label, count(*) AS Nodes ORDER BY label;
+
+
+// AUDIT BY RELATIONSHIP TYPE
+MATCH ()-[r]->() RETURN type(r) AS Relationship, count(*) AS Edges ORDER BY Relationship;
+
+
+// AUDIT INDEXES AND CONSTRAINTS
+SHOW INDEXES YIELD name, type, entityType, labelsOrTypes, properties RETURN name,type,entityType,labelsOrTypes,properties ORDER BY name;
+
